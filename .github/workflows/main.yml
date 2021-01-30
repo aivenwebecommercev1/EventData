@@ -36,6 +36,7 @@ jobs:
       - name: Run EventConsumer
         run: |
           for changed_file in ${{ steps.files.outputs.added }}; do
-            echo "EventId: ${changed_file}."
-            docker run -i --rm docker.pkg.github.com/aivenweb/aivenecommerce.v1/eventconsumer:main -event-id ${changed_file}
+            readarray -d / -t strarr <<< ${changed_file}
+            echo "EventId: ${strarr[1]}."
+            docker run -i --rm docker.pkg.github.com/aivenweb/aivenecommerce.v1/eventconsumer:main -event-id ${strarr[1]}
           done
