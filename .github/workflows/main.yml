@@ -23,7 +23,7 @@ jobs:
         id: files
         uses: jitterbit/get-changed-files@v1
 
-        if: ${{#steps.files.outputs.added > 0}}
+        if: ${{ steps.files.outputs.added[0] != null }}
 
       - name: Docker Login
         uses: docker/login-action@v1.8.0
