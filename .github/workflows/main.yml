@@ -12,27 +12,27 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  verifychanges:
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    outputs:
+      files: ${{ steps.files.outputs.added }}
+    
     steps:
-      - name: Get Changed Files
-        id: files
-        uses: jitterbit/get-changed-files@v1
+    - name: Get Changed Files
+      id: files
+      uses: jitterbit/get-changed-files@v1
 
-        if: ${{ steps.files.outputs.added[0] != null }}
+  event-consumer:
+    needs: verifychanges
+    runs-on: ubuntu-latest
+    if: ${{ needs.verifychanges.outputs.files[0] != null }}
+    steps:
 
       - name: Docker Login
         uses: docker/login-action@v1.8.0
         with:
-          # Server address of Docker registry. If not set then will default to Docker Hub
           registry: docker.pkg.github.com
-          # Username used to log against the Docker registry
           username: aivenweb
-          # Password or personal access token used to log against the Docker registry
           password: ${{ secrets.AIVENWEB_GH_TOKEN }}
         
       - name: Pull Image
@@ -40,7 +40,7 @@ jobs:
 
       - name: Run EventConsumer
         run: |
-          for changed_file in ${{ steps.files.outputs.added }}; do
+          for changed_file in ${{ needs.verifychanges.outputs.files }}; do
             readarray -d / -t strarr <<< ${changed_file}
             echo "EventId: ${strarr[1]}."
             docker run -i --rm docker.pkg.github.com/aivenweb/aivenecommerce.v1/eventconsumer:main -event-id ${strarr[1]}
