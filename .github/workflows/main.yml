@@ -8,9 +8,6 @@ on:
   push:
     branches: [ main ]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -26,10 +23,19 @@ jobs:
           # Server address of Docker registry. If not set then will default to Docker Hub
           registry: docker.pkg.github.com
           # Username used to log against the Docker registry
-          username: ${{ github.actor }}
+          username: aivenweb
           # Password or personal access token used to log against the Docker registry
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.AIVENWEB_GH_TOKEN }}
       - name: Pull Image
-        run: docker pull docker.pkg.github.com/lauchacarro/poc-githubpackages-docker/counter-image:main
-      - name: Run Image
-        run: docker run -i --rm docker.pkg.github.com/lauchacarro/poc-githubpackages-docker/counter-image:main 3
+        run: docker pull docker.pkg.github.com/aivenweb/aivenecommerce.v1/eventconsumer:main
+        
+      - name: Get Changed Files
+        id: files
+        uses: jitterbit/get-changed-files@v1
+
+      - name: Run EventConsumer
+        run: |
+          for changed_file in ${{ steps.files.outputs.added }}; do
+            echo "EventId: ${changed_file}."
+            docker run -i --rm docker.pkg.github.com/aivenweb/aivenecommerce.v1/eventconsumer:main -event-id ${changed_file}
+          done
