@@ -25,7 +25,7 @@ jobs:
   event-consumer:
     needs: verifychanges
     runs-on: ubuntu-latest
-    if: ${{ needs.verifychanges.outputs.files[0] != null }}
+    if: ${{ needs.verifychanges.outputs.files != null }}
     steps:
 
       - name: Docker Login
